@@ -1,11 +1,16 @@
 defmodule AioWeb.TodoLive.Index do
   use AioWeb, :live_view
 
+  alias Aio.Event
   alias Aio.Model
   alias Aio.Model.Todo
 
   @impl true
   def mount(_params, _session, socket) do
+    if connected?(socket) do
+      Model.subscribe(socket.assigns.scope)
+    end
+
     {:ok, stream(socket, :todos, Model.list_todos(socket.assigns.scope))}
   end
 
@@ -33,6 +38,21 @@ defmodule AioWeb.TodoLive.Index do
   end
 
   @impl true
+  def handle_info({Aio.Model, %Event.TodoAdd{todo: todo} = _event}, socket) do
+    {:noreply, stream_insert(socket, :todos, todo)}
+  end
+
+  @impl true
+  def handle_info({Aio.Model, %Event.TodoDelete{todo: todo} = _event}, socket) do
+    {:noreply, stream_delete(socket, :todos, todo)}
+  end
+
+  @impl true
+  def handle_info({Aio.Model, %Event.TodoUpdate{todo: todo} = _event}, socket) do
+    {:noreply, stream_insert(socket, :todos, todo)}
+  end
+
+  @impl true
   def handle_info({AioWeb.TodoLive.FormComponent, {:saved, todo}}, socket) do
     {:noreply, stream_insert(socket, :todos, todo)}
   end
@@ -42,6 +62,8 @@ defmodule AioWeb.TodoLive.Index do
     todo = Model.get_todo!(socket.assigns.scope, id)
     {:ok, _} = Model.delete_todo(todo)
 
-    {:noreply, stream_delete(socket, :todos, todo)}
+    Model.broadcast(socket.assigns.scope, %Event.TodoDelete{todo: todo})
+
+    {:noreply, socket}
   end
 end

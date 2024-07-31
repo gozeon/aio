@@ -9,6 +9,16 @@ defmodule Aio.Model do
 
   alias Aio.Model.Todo
 
+  def subscribe(%Scope{} = scope) do
+    Phoenix.PubSub.subscribe(Aio.PubSub, topic(scope))
+  end
+
+  def topic(%Scope{} = scope), do: "todo:#{scope.current_user.id}"
+
+  def broadcast(%Scope{} = scope, event) do
+    Phoenix.PubSub.broadcast(Aio.PubSub, topic(scope), {__MODULE__, event})
+  end
+
   @doc """
   Returns the list of todos.
 

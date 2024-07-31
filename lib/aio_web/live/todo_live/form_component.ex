@@ -1,4 +1,5 @@
 defmodule AioWeb.TodoLive.FormComponent do
+  alias Aio.Event
   use AioWeb, :live_component
 
   alias Aio.Model
@@ -37,7 +38,6 @@ defmodule AioWeb.TodoLive.FormComponent do
 
   @impl true
   def update(%{todo: todo} = assigns, socket) do
-    IO.inspect(socket)
     {:ok,
      socket
      |> assign(assigns)
@@ -59,7 +59,8 @@ defmodule AioWeb.TodoLive.FormComponent do
   defp save_todo(socket, :edit, todo_params) do
     case Model.update_todo(socket.assigns.todo, todo_params) do
       {:ok, todo} ->
-        notify_parent({:saved, todo})
+        # notify_parent({:saved, todo})
+        Model.broadcast(socket.assigns.scope, %Event.TodoUpdate{todo: todo})
 
         {:noreply,
          socket
@@ -74,7 +75,8 @@ defmodule AioWeb.TodoLive.FormComponent do
   defp save_todo(socket, :new, todo_params) do
     case Model.create_todo(socket.assigns.scope, todo_params) do
       {:ok, todo} ->
-        notify_parent({:saved, todo})
+        # notify_parent({:saved, todo})
+        Model.broadcast(socket.assigns.scope, %Event.TodoAdd{todo: todo})
 
         {:noreply,
          socket
@@ -86,5 +88,5 @@ defmodule AioWeb.TodoLive.FormComponent do
     end
   end
 
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+  # defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end
