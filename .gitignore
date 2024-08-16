@@ -35,3 +35,6 @@ aio-*.tar
 npm-debug.log
 /assets/node_modules/
 
+aio_dev.db
+aio_dev.db-shm
+aio_dev.db-wal
