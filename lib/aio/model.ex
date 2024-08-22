@@ -115,4 +115,115 @@ defmodule Aio.Model do
   def change_todo(%Todo{} = todo, attrs \\ %{}) do
     Todo.changeset(todo, attrs)
   end
+
+  alias Aio.Model.ActivityLog
+
+  @doc """
+  Returns the list of activity_logs.
+
+  ## Examples
+
+      iex> list_activity_logs()
+      [%ActivityLog{}, ...]
+
+  """
+  def list_activity_logs do
+    Repo.all(ActivityLog) |> Repo.preload(:user)
+  end
+
+  @doc """
+  Gets a single activity_log.
+
+  Raises `Ecto.NoResultsError` if the Activity log does not exist.
+
+  ## Examples
+
+      iex> get_activity_log!(123)
+      %ActivityLog{}
+
+      iex> get_activity_log!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_activity_log!(id), do: Repo.get!(ActivityLog, id) |> Repo.preload(:user)
+
+  @doc """
+  Creates a activity_log.
+
+  ## Examples
+
+      iex> create_activity_log(%{field: value})
+      {:ok, %ActivityLog{}}
+
+      iex> create_activity_log(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_activity_log(%Scope{} = scope, attrs \\ %{}) do
+    %ActivityLog{user: scope.current_user}
+    |> ActivityLog.changeset(
+      Map.put(attrs, "meta", Jason.encode!(%{"create_user" => scope.current_user.email}))
+    )
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a activity_log.
+
+  ## Examples
+
+      iex> update_activity_log(activity_log, %{field: new_value})
+      {:ok, %ActivityLog{}}
+
+      iex> update_activity_log(activity_log, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_activity_log_meta(%Scope{} = scope, attrs) do
+    case Jason.decode(Map.get(attrs, "meta")) do
+      {:ok, mmeta} when is_map(mmeta) ->
+        Jason.encode!(Map.put_new(mmeta, "update_user", scope.current_user.email))
+
+      _ ->
+        Jason.encode!(%{
+          "old" => Map.get(attrs, "meta"),
+          "update_user" => scope.current_user.email
+        })
+    end
+  end
+
+  def update_activity_log(%Scope{} = scope, %ActivityLog{} = activity_log, attrs) do
+    activity_log
+    |> ActivityLog.changeset(%{attrs | "meta" => update_activity_log_meta(scope, attrs)})
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a activity_log.
+
+  ## Examples
+
+      iex> delete_activity_log(activity_log)
+      {:ok, %ActivityLog{}}
+
+      iex> delete_activity_log(activity_log)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_activity_log(%ActivityLog{} = activity_log) do
+    Repo.delete(activity_log)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking activity_log changes.
+
+  ## Examples
+
+      iex> change_activity_log(activity_log)
+      %Ecto.Changeset{data: %ActivityLog{}}
+
+  """
+  def change_activity_log(%ActivityLog{} = activity_log, attrs \\ %{}) do
+    ActivityLog.changeset(activity_log, attrs)
+  end
 end

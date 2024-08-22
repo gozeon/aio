@@ -30,6 +30,13 @@ defmodule AioWeb.Router do
 
       live "/todos/:id", TodoLive.Show, :show
       live "/todos/:id/show/edit", TodoLive.Show, :edit
+
+      live "/activity_logs", ActivityLogLive.Index, :index
+      live "/activity_logs/new", ActivityLogLive.Index, :new
+      live "/activity_logs/:id/edit", ActivityLogLive.Index, :edit
+
+      live "/activity_logs/:id", ActivityLogLive.Show, :show
+      live "/activity_logs/:id/show/edit", ActivityLogLive.Show, :edit
     end
   end
 

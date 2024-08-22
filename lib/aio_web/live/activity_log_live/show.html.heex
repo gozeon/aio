@@ -1,0 +1,34 @@
+<.header>
+  Activity log <%= @activity_log.id %>
+  <:subtitle>This is a activity_log record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/activity_logs/#{@activity_log}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit activity_log</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Meta"><%= @activity_log.meta %></:item>
+  <:item title="Action"><%= @activity_log.action %></:item>
+  <:item title="Subject"><%= @activity_log.subject %></:item>
+</.list>
+
+<.back navigate={~p"/activity_logs"}>Back to activity_logs</.back>
+
+<.modal
+  :if={@live_action == :edit}
+  id="activity_log-modal"
+  show
+  on_cancel={JS.patch(~p"/activity_logs/#{@activity_log}")}
+>
+  <.live_component
+    scope={@scope}
+    module={AioWeb.ActivityLogLive.FormComponent}
+    id={@activity_log.id}
+    title={@page_title}
+    action={@live_action}
+    activity_log={@activity_log}
+    patch={~p"/activity_logs/#{@activity_log}"}
+  />
+</.modal>
