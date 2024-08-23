@@ -131,6 +131,11 @@ defmodule Aio.Model do
     Repo.all(ActivityLog) |> Repo.preload(:user)
   end
 
+  def get_activity_logs_latest do
+    Repo.all(from t in ActivityLog, limit: 5, order_by: [desc: t.inserted_at])
+    |> Repo.preload(:user)
+  end
+
   @doc """
   Gets a single activity_log.
 
@@ -161,9 +166,8 @@ defmodule Aio.Model do
   """
   def create_activity_log(%Scope{} = scope, attrs \\ %{}) do
     %ActivityLog{user: scope.current_user}
-    |> ActivityLog.changeset(
-      Map.put(attrs, "meta", Jason.encode!(%{"create_user" => scope.current_user.email}))
-    )
+    |> ActivityLog.changeset(attrs)
+    |> ActivityLog.set_meta(%{"create_user" => scope.current_user.email})
     |> Repo.insert()
   end
 
@@ -179,22 +183,10 @@ defmodule Aio.Model do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_activity_log_meta(%Scope{} = scope, attrs) do
-    case Jason.decode(Map.get(attrs, "meta")) do
-      {:ok, mmeta} when is_map(mmeta) ->
-        Jason.encode!(Map.put_new(mmeta, "update_user", scope.current_user.email))
-
-      _ ->
-        Jason.encode!(%{
-          "old" => Map.get(attrs, "meta"),
-          "update_user" => scope.current_user.email
-        })
-    end
-  end
-
   def update_activity_log(%Scope{} = scope, %ActivityLog{} = activity_log, attrs) do
     activity_log
-    |> ActivityLog.changeset(%{attrs | "meta" => update_activity_log_meta(scope, attrs)})
+    |> ActivityLog.changeset(attrs)
+    |> ActivityLog.set_meta(%{"update_user" => scope.current_user.email})
     |> Repo.update()
   end
 

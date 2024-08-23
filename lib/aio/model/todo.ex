@@ -2,6 +2,7 @@ defmodule Aio.Model.Todo do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @derive {Jason.Encoder, only: [:id, :title, :status]}
   schema "todos" do
     field :status, Ecto.Enum, values: [:todo, :doing, :done, :end]
     field :title, :string
