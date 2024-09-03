@@ -23,6 +23,7 @@ defmodule AioWeb.TodoLive.Show do
 
   @impl true
   def handle_info({Aio.Model, %Event.TodoUpdate{todo: todo} = _event}, socket) do
+    send(self(), {__MODULE__, {:log, "update", todo}})
     socket =
       socket
       |> put_flash(:info, "Todo has Changed")
@@ -32,13 +33,23 @@ defmodule AioWeb.TodoLive.Show do
   end
 
   @impl true
-  def handle_info({Aio.Model, %Event.TodoDelete{todo: _todo} = _event}, socket) do
+  def handle_info({Aio.Model, %Event.TodoDelete{todo: todo} = _event}, socket) do
+    send(self(), {__MODULE__, {:log, "delete", todo}})
     socket =
       socket
       |> put_flash(:info, "Todo has Deleted")
       |> push_navigate(to: ~p"/todos", replace: true)
 
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({__MODULE__, {:log, action, todo}}, socket) do
+    Model.create_activity_log(socket.assigns.scope, %{
+      "action" => action,
+      "subject" => "todo",
+      "meta" => Jason.encode!(%{"todo" => todo})
+    })
   end
 
   defp page_title(:show), do: "Show Todo"
