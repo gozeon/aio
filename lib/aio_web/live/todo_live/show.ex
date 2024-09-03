@@ -50,6 +50,8 @@ defmodule AioWeb.TodoLive.Show do
       "subject" => "todo",
       "meta" => Jason.encode!(%{"todo" => todo})
     })
+
+    {:noreply, socket}
   end
 
   defp page_title(:show), do: "Show Todo"
